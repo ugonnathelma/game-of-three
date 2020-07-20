@@ -71,21 +71,22 @@ app.post("/move", (req, res) => {
   // add authorization
 
   const player = players.find((player) => player.id === req.body.id);
-  const lastMove = getLastMove().number;
-  const thisMove = Math.round((lastMove + req.body.move) / 3);
+  const lastMoveNumber = getLastMove().number;
+  const thisMoveNumber = Math.round((lastMoveNumber + req.body.move) / 3);
 
-  if (thisMove) {
-    moves.push({
+  if (thisMoveNumber) {
+    const newMove = {
       id: player.id,
       createdAt: Date.now(),
-      number: thisMove,
-    });
+      number: thisMoveNumber,
+    };
+    moves.push(newMove);
 
-    if (thisMove === 1) {
+    if (thisMoveNumber === 1) {
       endGame(player.id);
     }
 
-    res.status(201).json();
+    res.status(201).json(newMove);
   } else {
     res.status(503).json();
   }
@@ -97,7 +98,7 @@ app.get("/moves", (_req, res) => {
   const isPast2minsSinceLastMove =
     Math.abs(Date.now() - lastMove.createdAt) / 60000 > maxMinsToPlay;
 
-  if (lastMove && maxPlayersReached && isPast2minsSinceLastMove) {
+  if (gameInSession && maxPlayersReached && isPast2minsSinceLastMove) {
     endGame(lastMove.id);
   }
 
