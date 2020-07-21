@@ -1,1 +1,6 @@
-export type Move = { id: string; createdAt: Date; number: number };
+export type Move = {
+  id: string;
+  createdAt: Date;
+  number: number;
+  calculation: string;
+};

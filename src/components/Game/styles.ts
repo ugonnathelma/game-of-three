@@ -14,8 +14,14 @@ export const Play = styled.div<{ thisPlayer: boolean }>`
     font-weight: bold;
   }
 
+  & > div:first-child {
+    font-size: 1em;
+    font-weight: bold;
+    align-self:center;
+    background:white;
+  }
 
-  & > div {
+  & > div:last-child {
     font-size: 2em;
     font-weight: bold;
     border-radius: 5px;
@@ -28,7 +34,7 @@ export const Play = styled.div<{ thisPlayer: boolean }>`
     background: ${({ theme: { colors } }) => colors.cyan};
 }
 
-&:nth-of-type(even) > div {
+&:nth-of-type(even) > div:last-child {
     background: ${({ theme: { colors } }) => colors.green};
 }
   
@@ -61,6 +67,7 @@ export const WinnerOverlay = styled.div`
   font-size: 3em;
 
   b {
+    text-align: center;
     border-radius: 5px;
     padding: 1em;
     background: ${({ theme: { colors } }) => colors.primary};

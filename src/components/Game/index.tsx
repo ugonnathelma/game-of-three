@@ -47,7 +47,13 @@ const Game = ({
     return () => clearInterval(interval);
   }, [moves.length, playerId, setMoves, setTimeLeft, winner]);
 
+  const handleMove = (number: number) => {
+    makeMove(number, playerId);
+  };
+
   const notYourTurn = lastMove?.id === playerId;
+
+  const moveNumbers = [-1, 0, 1];
 
   return (
     <>
@@ -58,11 +64,12 @@ const Game = ({
       <br />
       <br />
       <div>
-        {moves.map(({ id, number }: Move, index: number) => {
+        {moves.map(({ id, number, calculation }: Move, index: number) => {
           const thisPlayer = playerId === id;
 
           return (
             <Play thisPlayer={thisPlayer} key={index}>
+              <div>{calculation}</div>
               <p>{thisPlayer ? "You" : "Opponent"}</p>
               <div>{number}</div>
             </Play>
@@ -73,30 +80,22 @@ const Game = ({
         {!winner && (
           <>
             <b>Make a Move: </b>
-            <Button
-              height="50px"
-              width="50px"
-              onClick={() => makeMove(1, playerId)}
-              disabled={notYourTurn}
-            >
-              1
-            </Button>
-            <Button
-              onClick={() => makeMove(0, playerId)}
-              height="50px"
-              width="50px"
-              disabled={notYourTurn}
-            >
-              0
-            </Button>
-            <Button
-              onClick={() => makeMove(-1, playerId)}
-              height="50px"
-              width="50px"
-              disabled={notYourTurn}
-            >
-              -1
-            </Button>
+            {moveNumbers.map((number) => {
+              // restrict any move that makes result lower than 1
+              const moveNotAllowed = (lastMove?.number + number) / 3 < 1;
+
+              return (
+                <Button
+                  key={number}
+                  height="50px"
+                  width="50px"
+                  onClick={() => handleMove(number)}
+                  disabled={notYourTurn || moveNotAllowed}
+                >
+                  {number}
+                </Button>
+              );
+            })}
           </>
         )}
       </Moves>
