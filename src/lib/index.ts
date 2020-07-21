@@ -15,7 +15,7 @@ export const makeMove = async (number: number, playerId: string) => {
   });
 };
 
-export const getMoves = async () => {
-  const response = await fetch(`${API_URL}/moves`);
+export const getMoves = async (playerId: string) => {
+  const response = await fetch(`${API_URL}/moves?id=${playerId}`);
   return await response.json();
 };

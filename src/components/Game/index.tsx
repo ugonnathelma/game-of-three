@@ -3,6 +3,7 @@ import Button from "../atoms/Button";
 import { Play, Moves, WinnerOverlay } from "./styles";
 import { Move } from "../../common/types";
 import { makeMove, getMoves } from "../../lib";
+import GameOver from "./GameOver";
 
 type GameProps = {
   moves: Move[];
@@ -31,11 +32,9 @@ const Game = ({
           moves: movesFromApi,
           maxPlayersReached,
           timeLeft,
-        } = await getMoves();
+        } = await getMoves(playerId);
 
-        if (winnerId) {
-          setWinner(winnerId);
-        }
+        winnerId && setWinner(winnerId);
 
         if (movesFromApi) {
           const playLengthIncreased = movesFromApi.length !== moves.length;
@@ -46,21 +45,13 @@ const Game = ({
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [moves.length, setMoves, setTimeLeft, winner]);
+  }, [moves.length, playerId, setMoves, setTimeLeft, winner]);
 
   const notYourTurn = lastMove?.id === playerId;
 
   return (
     <>
-      {winner && (
-        <WinnerOverlay>
-          <b>
-            Game Over!
-            <br />
-            {winner === playerId ? "You won" : "Your opponent won"}
-          </b>
-        </WinnerOverlay>
-      )}
+      {winner && <GameOver youWon={winner === playerId} />}
       <div>
         <b>Time Left To Play:</b> {timeLeft} secs
       </div>

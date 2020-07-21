@@ -11,11 +11,41 @@ let maxPlayersReached = false; // game has maximum number of players
 
 const getLastMove = () => moves[moves.length - 1];
 
-const endGame = (playerId) => {
+const endGame = (playerId: string) => {
   winner = playerId;
   gameInSession = false;
   maxPlayersReached = false;
   players = [];
+};
+
+const startGame = (playerId: string) => {
+  const newPlayer = {
+    id: playerId,
+  };
+  players.push(newPlayer);
+
+  // set game to full once there are two players...
+  // implementation for future: have different game sessions to allow more users play simultaneously
+  if (players.length >= 2) {
+    maxPlayersReached = true;
+  }
+
+  if (!gameInSession) {
+    winner = null;
+    moves = [];
+
+    // make first move with random number between 10 and 100
+    const numberPlayed = Math.floor(Math.random() * (100 - 10 + 1) + 10);
+
+    moves.push({
+      createdAt: Date.now(),
+      id: playerId,
+      number: numberPlayed,
+    });
+
+    // start game
+    gameInSession = true;
+  }
 };
 
 app.use((_req, res, next) => {
@@ -35,31 +65,7 @@ app.post("/", (_req, res) => {
     // generate player id
     const playerId = Math.random().toString(36).substring(2, 15);
 
-    const newPlayer = {
-      id: playerId,
-    };
-    players.push(newPlayer);
-
-    // set game to full once there are two players...
-    // implementation for future, have different game session to allow more users play simultaneously
-    if (players.length >= 2) {
-      maxPlayersReached = true;
-    }
-
-    if (!gameInSession) {
-      winner = null;
-      // make first move with random number between 10 and 100
-      const numberPlayed = Math.floor(Math.random() * (100 - 10 + 1) + 10);
-      moves = [];
-      moves.push({
-        createdAt: Date.now(),
-        id: playerId,
-        number: numberPlayed,
-      });
-
-      // start game
-      gameInSession = true;
-    }
+    startGame(playerId);
 
     res.status(201).json({
       id: playerId,
@@ -69,50 +75,62 @@ app.post("/", (_req, res) => {
 });
 
 app.post("/move", (req, res) => {
-  // add authorization
-
   const player = players.find((player) => player.id === req.body.id);
-  const lastMoveNumber = getLastMove().number;
-  const thisMoveNumber = Math.round((lastMoveNumber + req.body.move) / 3);
+  if (player) {
+    const lastMoveNumber = getLastMove().number;
+    const thisMoveNumber = Math.round((lastMoveNumber + req.body.move) / 3);
 
-  if (thisMoveNumber) {
-    const newMove = {
-      id: player.id,
-      createdAt: Date.now(),
-      number: thisMoveNumber,
-    };
-    moves.push(newMove);
+    if (thisMoveNumber) {
+      const newMove = {
+        id: player.id,
+        createdAt: Date.now(),
+        number: thisMoveNumber,
+      };
+      moves.push(newMove);
 
-    if (thisMoveNumber === 1) {
-      endGame(player.id);
+      if (thisMoveNumber === 1) {
+        endGame(player.id);
+      }
+
+      res.status(201).json(newMove);
+    } else {
+      res.sendStatus(400);
     }
-
-    res.status(201).json(newMove);
   } else {
-    res.status(503).json();
+    res.status(401).json({
+      error: { message: "You are not a player in this game" },
+    });
   }
 });
 
-app.get("/moves", (_req, res) => {
-  const lastMove = getLastMove();
-  if (lastMove) {
-    const diff = Math.floor(Math.abs(Date.now() - lastMove.createdAt) / 1000);
+app.get("/moves", (req, res) => {
+  const player = players.find((player) => player.id === req.query.id);
+  if (player) {
+    const lastMove = getLastMove();
 
-    const isPast2minsSinceLastMove = diff > maxSecsToPlay;
+    if (lastMove) {
+      const diff = Math.floor(Math.abs(Date.now() - lastMove.createdAt) / 1000);
 
-    // only check time left if game is started and more than one player in game
-    // end game is more than 2mins since last play
-    if (gameInSession && maxPlayersReached && isPast2minsSinceLastMove) {
-      endGame(lastMove.id);
+      const isPast2minsSinceLastMove = diff > maxSecsToPlay;
+
+      // only check time left if game is started and more than one player in game
+      // end game is more than 2mins since last play
+      if (gameInSession && maxPlayersReached && isPast2minsSinceLastMove) {
+        endGame(lastMove.id);
+      }
+
+      res.status(200).json({
+        moves,
+        maxPlayersReached,
+        gameInSession,
+        winnerId: winner,
+        timeLeft: maxSecsToPlay - diff,
+      });
+    } else {
+      res.status(401).json({
+        error: { message: "You are not a player in this game" },
+      });
     }
-
-    res.status(200).json({
-      moves,
-      maxPlayersReached,
-      gameInSession,
-      winnerId: winner,
-      timeLeft: maxSecsToPlay - diff,
-    });
   }
 });
 
