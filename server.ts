@@ -1,13 +1,13 @@
 const express = require("express");
 const app = express();
 const port = 3001;
-const maxMinsToPlay = 2;
+const maxSecsToPlay = 120;
 
 let players = [];
 let moves = [];
 let winner = null;
-let gameInSession = false;
-let maxPlayersReached = false;
+let gameInSession = false; // game has started
+let maxPlayersReached = false; // game has maximum number of players
 
 const getLastMove = () => moves[moves.length - 1];
 
@@ -47,6 +47,7 @@ app.post("/", (_req, res) => {
     }
 
     if (!gameInSession) {
+      winner = null;
       // make first move with random number between 10 and 100
       const numberPlayed = Math.floor(Math.random() * (100 - 10 + 1) + 10);
       moves = [];
@@ -94,20 +95,25 @@ app.post("/move", (req, res) => {
 
 app.get("/moves", (_req, res) => {
   const lastMove = getLastMove();
+  if (lastMove) {
+    const diff = Math.floor(Math.abs(Date.now() - lastMove.createdAt) / 1000);
 
-  const isPast2minsSinceLastMove =
-    Math.abs(Date.now() - lastMove.createdAt) / 60000 > maxMinsToPlay;
+    const isPast2minsSinceLastMove = diff > maxSecsToPlay;
 
-  if (gameInSession && maxPlayersReached && isPast2minsSinceLastMove) {
-    endGame(lastMove.id);
+    // only check time left if game is started and more than one player in game
+    // end game is more than 2mins since last play
+    if (gameInSession && maxPlayersReached && isPast2minsSinceLastMove) {
+      endGame(lastMove.id);
+    }
+
+    res.status(200).json({
+      moves,
+      maxPlayersReached,
+      gameInSession,
+      winnerId: winner,
+      timeLeft: maxSecsToPlay - diff,
+    });
   }
-
-  res.status(200).json({
-    moves,
-    maxPlayersReached,
-    gameInSession,
-    winnerId: winner,
-  });
 });
 
 app.listen(port, () => console.log(`listening at http://localhost:${port}`));
