@@ -11,14 +11,14 @@ let maxPlayersReached = false; // game has maximum number of players
 
 const getLastMove = () => moves[moves.length - 1];
 
-const endGame = (playerId: string) => {
+const endGame = (playerId) => {
   winner = playerId;
   gameInSession = false;
   maxPlayersReached = false;
   players = [];
 };
 
-const startGame = (playerId: string) => {
+const startGame = (playerId) => {
   const newPlayer = {
     id: playerId,
   };

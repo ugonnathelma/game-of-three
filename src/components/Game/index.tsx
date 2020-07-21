@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Button from "../atoms/Button";
-import { Play, Moves, WinnerOverlay } from "./styles";
+import { Play, Moves } from "./styles";
 import { Move } from "../../common/types";
 import { makeMove, getMoves } from "../../lib";
 import GameOver from "./GameOver";
