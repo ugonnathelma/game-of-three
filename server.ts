@@ -15,10 +15,10 @@ const endGame = (playerId) => {
   winner = playerId;
   gameInSession = false;
   maxPlayersReached = false;
-  players = [];
 };
 
 const startGame = (playerId) => {
+  players = [];
   const newPlayer = {
     id: playerId,
   };
@@ -84,6 +84,7 @@ app.post("/move", (req, res) => {
       const newMove = {
         id: player.id,
         createdAt: Date.now(),
+        calculation: `(${lastMoveNumber} + ${req.body.move}) / 3`,
         number: thisMoveNumber,
       };
       moves.push(newMove);
@@ -94,7 +95,9 @@ app.post("/move", (req, res) => {
 
       res.status(201).json(newMove);
     } else {
-      res.sendStatus(400);
+      res.status(400).json({
+        error: { message: "Move is invalid" },
+      });
     }
   } else {
     res.status(401).json({
