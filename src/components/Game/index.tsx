@@ -64,12 +64,12 @@ const Game = ({
       <br />
       <br />
       <div>
-        {moves.map(({ id, number, calculation }: Move, index: number) => {
+        {moves.map(({ id, number, formula }: Move, index: number) => {
           const thisPlayer = playerId === id;
 
           return (
             <Play thisPlayer={thisPlayer} key={index}>
-              <div>{calculation}</div>
+              <div>{formula}</div>
               <p>{thisPlayer ? "You" : "Opponent"}</p>
               <div>{number}</div>
             </Play>
